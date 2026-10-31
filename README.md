@@ -1,11 +1,15 @@
 # labview-ai-training
 
-Training work for Dynaspede's local LabVIEW AI assistant: datasets, an answer-quality test
-set, the fine-tuning notebook and GGUF export. The finished model is used by
-[DynasBrain](https://github.com/Robokks/labview-ai-assist), which is the app engineers use.
+Training work for Dynaspede's local LabVIEW AI assistant: answer-quality test set,
+datasets, fine-tuning and GGUF export. The finished model is used by
+[DynasBrain](https://github.com/Robokks/labview-ai-assist), the app engineers use.
 
-- [PLAN.md](PLAN.md): the full system design (two PCs, gateway, relay, privacy, sandbox,
-  model, milestones).
-- [CONTEXT.md](CONTEXT.md): a short summary for starting a new session.
+This repository also holds the documentation for the whole system.
+
+| Read | For |
+|---|---|
+| [docs/](docs/README.md) | Full documentation: architecture, privacy, sandbox, network setup, local model, training, VI logic, milestones, glossary |
+| [PLAN.md](PLAN.md) | One-page summary of the design |
+| [CONTEXT.md](CONTEXT.md) | Short summary to paste into a new AI session |
 
 Status: design only. No training code has been added yet.

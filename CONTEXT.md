@@ -2,7 +2,7 @@
 
 > Give this file to a new Claude session to continue the work.
 > Last updated: 2026-10-31. Replaces the earlier `labview_ai_context.md`.
-> The full design is in [PLAN.md](PLAN.md).
+> The full design is in [docs/](docs/README.md); [PLAN.md](PLAN.md) is the one-page summary.
 
 ## Who
 
@@ -46,7 +46,7 @@ postponed.
 | `ai-chatbot` | Flutter app (Android/Windows): cloud models, offline GGUF via llamadart, LAN home server (OpenAI-compatible API, MCP, UTCP, A2A, PIN pairing), MCP/CLI tools | `docs/HANDOVER.md` §2A (Claude Code sharing) is untested and must be changed to run with offline-PC tools only |
 | `LabVIEW-MCP-Server-Toolkit` | LabVIEW SDK: expose your own VIs as MCP tools over HTTP | Later: test rigs |
 | `VI-Explorer-VI` | G reader/writer for VI files, LabVIEW ≤ 2016, includes password overwrite | Reference only, not used |
-| `labview-ai-training-` (this repo) | Training work | PLAN.md + this file only. The earlier scripts (`extract_training_data.py`, `convert_chats.py`, `colab_finetune.ipynb`) are not in the repo yet |
+| `labview-ai-training-` (this repo) | Training work + system documentation | `docs/`, PLAN.md and this file. The earlier scripts (`extract_training_data.py`, `convert_chats.py`, `colab_finetune.ipynb`) are not in the repo yet |
 
 ## Known facts
 
@@ -65,4 +65,4 @@ its MCP tools on the cable, and Claude Code on the internet PC answering a quest
 ## How to use this file
 
 Paste it into a new session and say:
-> "Read CONTEXT.md and PLAN.md in Robokks/labview-ai-training- and continue."
+> "Read CONTEXT.md, PLAN.md and docs/ in Robokks/labview-ai-training- and continue."
