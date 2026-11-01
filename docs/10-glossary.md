@@ -17,6 +17,8 @@
 | **MCP** | Model Context Protocol: the standard way an AI calls external tools. |
 | **Ollama** | A program that runs local models on Windows and offers an OpenAI-compatible API. |
 | **OpenAI-compatible API** | The common `/v1/chat/completions` interface. Ollama, ai-chatbot's home server and many others offer it. |
+| **Phone setting** | Per-project setting for the mobile remote: Off, View and ask, or View, ask and approve. |
+| **PWA** | Progressive web app: a web page that can be added to the phone's home screen and looks like an app. |
 | **pylabview** | Open-source Python library that reads and writes the `.vi` file container. Bundled with labview-mcp. |
 | **Q4_K_M** | A 4-bit quantisation: the model is about a quarter of its original size, with little quality loss. |
 | **RAG** | Retrieval-augmented generation: search first, then give the results to the model to answer from. This is how DynasBrain gives the model our facts. |

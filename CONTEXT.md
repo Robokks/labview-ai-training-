@@ -36,6 +36,11 @@ postponed.
    Laptop 16 GB fits 7B; the other PC has only ~7 GB free, so it uses the model over the cable.
 8. **Build order:** L1 cable + read-only gateway → L2 relay → L3 local AI backend →
    L4 labview-mcp + sandbox → L5 logic (pylabview + bridge) → L6 training.
+9. **Mobile remote** (docs/11-mobile-remote.md): phone on the office Wi-Fi asks, sends
+   commands, views progress; generation stays on the offline PC. Modes in order: A internet
+   PC → B offline PC direct → C single PC. PWA first, then ai-chatbot Flutter. Phone approval
+   is a per-project setting (Off / View and ask / View, ask and approve), HMAC-signed by the
+   phone and verified on the offline PC. Build steps P1–P6, after L2.
 
 ## Repositories (all read on 2026-10-31)
 

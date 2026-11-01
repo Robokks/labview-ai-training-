@@ -21,6 +21,7 @@ already exists in DynasBrain and labview-mcp.
 | 8 | [Understanding VI logic](08-vi-understanding.md) | How the AI "reads" a binary VI: DynasBrain reader, pylabview, bridge Exporter VI |
 | 9 | [Milestones](09-milestones.md) | Build order, done-criteria and open questions |
 | 10 | [Glossary](10-glossary.md) | Terms used in these documents |
+| 11 | [Mobile remote](11-mobile-remote.md) | Use DynasBrain from a phone on the same network; generation stays on the PC |
 
 Short versions: [../PLAN.md](../PLAN.md) (one-page plan) and
 [../CONTEXT.md](../CONTEXT.md) (summary for starting a new AI session).
