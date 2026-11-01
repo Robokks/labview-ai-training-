@@ -22,6 +22,12 @@ flowchart LR
 | **L6** | Training | this repo | Test set, public dataset, fine-tuned 7B GGUF. Swapped in only if it beats the stock model. |
 | Later | | | QA / code review; MCP Server Toolkit for test rigs; multi-user tokens; LabVIEW WebView2 panel |
 
+**Status (2026-11-01):** L1 and L2 are built in DynasBrain (branch `ccr-da1e8f34-orde03`):
+`dynasbrain gateway`, `gateway-token`, `privacy`, `relay`, `relay-key`, `relay-connect`, plus
+Cancel on the Ask page. They are tested, including one run with real Claude Code. Still
+needed from a person: the cable, IPs and firewall ([Network setup](05-network-setup.md)),
+then a first run on the two real PCs. Codex on the relay is not wired up yet.
+
 ## Also to do
 
 - **ai-chatbot:** revise HANDOVER §2A so shared Claude Code / Codex use only the offline

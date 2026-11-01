@@ -59,8 +59,9 @@ postponed.
 
 ## Next step
 
-Milestone **L1**: fixed IPs and firewall on the cable, DynasBrain on the offline PC serving
-its MCP tools on the cable, and Claude Code on the internet PC answering a question with them.
+L1 (gateway) and L2 (relay) are built in DynasBrain, branch `ccr-da1e8f34-orde03`. Next:
+set up the cable and run them on the two real PCs (docs/05-network-setup.md, steps 1–7),
+then **L3**: a local model (Ollama) as a relay backend.
 
 ## How to use this file
 

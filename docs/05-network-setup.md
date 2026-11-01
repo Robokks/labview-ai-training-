@@ -13,7 +13,7 @@ PowerShell** on the PC named.
 | Cable IP | `192.168.50.1/24` | `192.168.50.2/24` |
 | Gateway on cable | none | **none** |
 | DNS on cable | none | **none** |
-| Listens on the cable | Relay (later) | DynasBrain gateway, TCP `8765` |
+| Listens on the cable | DynasBrain relay, TCP `8766` | DynasBrain gateway, TCP `8765` |
 
 No gateway and no DNS on the cable means the offline PC still has **no route to the
 internet**, and the internet PC keeps using its normal adapter for the internet.
@@ -93,36 +93,73 @@ Test-NetConnection 8.8.8.8 -Port 443                # must show TcpTestSucceeded
 route print -4 | Select-String "0.0.0.0"            # no default route via the cable
 ```
 
-## Step 6: first read-only test (milestone L1)
+## Step 6: the gateway on the offline PC (milestone L1)
 
-This works **with today's DynasBrain**, before the gateway is built.
+The gateway serves DynasBrain's **read-only** tools on the cable, and only to a
+**session token**: one per question, bound to one project, valid 30 minutes.
 
-**Offline PC:** serve DynasBrain on the cable address:
-
-```powershell
-dynasbrain serve --host 192.168.50.2 --port 8765
-```
-
-**Internet PC:** check the port, then connect Claude Code to it:
+**Offline PC:**
 
 ```powershell
-Test-NetConnection 192.168.50.2 -Port 8765          # TcpTestSucceeded : True
-claude mcp add --transport http --scope user dynasbrain-offline http://192.168.50.2:8765/mcp
-claude -p "Use dynasbrain-offline: list the projects, then explain the main VI of one of them."
+dynasbrain gateway --host 192.168.50.2               # port 8765, Ctrl+C to stop
 ```
 
-> **Caution:** today's `serve --host` has **no access key**, and it exposes the whole web UI
-> and API, not only the read-only MCP tools. The firewall rule in step 4 is the only
-> protection, which is acceptable for a short test. The gateway (L1/L2) adds the access key
-> and serves only what is needed on the cable.
->
-> With Claude Code, the answers are sent to Anthropic. Use a **non-confidential test
-> project** for this step.
+**First test with Claude Code on the internet PC.** Use a **non-confidential test
+project**, because Claude Code sends what it reads to Anthropic. On the offline PC,
+issue a token (`--cloud-ok` = you allow a cloud AI for this token):
+
+```powershell
+dynasbrain gateway-token -p test-project --cloud-ok  # prints the token
+```
+
+**Internet PC:**
+
+```powershell
+Test-NetConnection 192.168.50.2 -Port 8765           # TcpTestSucceeded : True
+claude mcp add --transport http --scope user dynasbrain-offline http://192.168.50.2:8765/mcp `
+  --header "Authorization: Bearer <token>"
+claude -p "Use dynasbrain-offline: list the projects, then explain the main VI."
+claude mcp remove dynasbrain-offline                 # when done
+```
+
+Without a valid token the gateway answers `401`. Every call is logged on the offline PC in
+`%USERPROFILE%\.dynasbrain\audit.jsonl`.
+
+## Step 7: the relay (milestone L2)
+
+With the relay, the engineer asks on the **offline PC's** Ask page and Claude Code on the
+internet PC answers. Tokens are issued and revoked automatically.
+
+**Internet PC** (Claude Code installed and signed in): allow the relay port from the
+offline PC only, then start the relay.
+
+```powershell
+New-NetFirewallRule -DisplayName "DynasBrain relay (cable only)" `
+  -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8766 `
+  -RemoteAddress 192.168.50.2 -InterfaceAlias $nic -Profile Any
+dynasbrain relay-key                                  # copy this key
+dynasbrain relay --host 192.168.50.1 --gateway http://192.168.50.2:8765
+```
+
+**Offline PC** (the gateway from step 6 running):
+
+```powershell
+dynasbrain relay-connect http://192.168.50.1:8766 <key>   # checks the relay answers
+dynasbrain serve --open                                    # then open Ask
+```
+
+On the Ask page, choose the project, tick **Allow sending this project's data to the cloud
+AI** (projects are "Local AI only" by default), and ask. **Cancel** stops Claude Code on the
+internet PC. To let a project use the cloud without the tick:
+`dynasbrain privacy test-project --cloud-allowed`.
+
+To stop using the relay: `dynasbrain relay-connect --off` and restart `dynasbrain serve`.
 
 ## Undoing the setup
 
 ```powershell
-Remove-NetFirewallRule -DisplayName "DynasBrain gateway (cable only)"
+Remove-NetFirewallRule -DisplayName "DynasBrain gateway (cable only)"     # offline PC
+Remove-NetFirewallRule -DisplayName "DynasBrain relay (cable only)"       # internet PC
 Remove-NetFirewallRule -DisplayName "Ping from internet PC (cable)" -ErrorAction SilentlyContinue
 Remove-NetIPAddress -InterfaceAlias $nic -Confirm:$false
 ```
