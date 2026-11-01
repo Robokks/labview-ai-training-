@@ -23,7 +23,7 @@ with confidential code kept on our own machines. QA / code review is postponed.
 | Network | Fixed IPs `192.168.50.1` / `.2`, no gateway/DNS on the cable, firewall locked to the internet PC, access key, IT approval | [Network setup](docs/05-network-setup.md) |
 | Model | Qwen2.5-Coder 7B Q4_K_M on the laptop via Ollama (3B fallback). CPU, slow is fine | [Local model](docs/06-local-model.md) |
 | Training | Test set first → public data + reviewed own Q&A → QLoRA on Colab → GGUF. Used only if it beats the stock model | [Training](docs/07-training.md) |
-| Mobile remote | Phone on office Wi-Fi → internet PC → cable → offline PC (then offline PC direct, then single PC). PWA first, then ai-chatbot. Phone approval is a per-project setting, signed and checked on the offline PC | [Mobile remote](docs/11-mobile-remote.md) |
+| Mobile remote | Android → online PC → offline PC, then Android → online PC only, then Android → offline PC. PWA first, then ai-chatbot. Phone approval is a per-project setting, signed and checked on the offline PC | [Mobile remote](docs/11-mobile-remote.md) |
 | VI logic | DynasBrain reader + pylabview + bridge Exporter VI, merged | [VI logic](docs/08-vi-understanding.md) |
 
 ## Build order

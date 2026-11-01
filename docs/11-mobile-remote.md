@@ -11,7 +11,7 @@ Status (2026-11-01): design agreed, not built.
 
 | Question | Decision |
 |---|---|
-| Which PC does the phone talk to? | All three, built in this order: **A** internet PC → **B** offline PC directly → **C** single PC |
+| Which PC does the phone talk to? | Android phone, three modes, built in this order: **A** Android → online PC → offline PC; **B** Android → online PC only; **C** Android → offline PC directly |
 | Can the phone approve writes/runs? | **Per-project setting** (below) |
 | What is the app? | **Web app (PWA) first**, then a native screen in the **ai-chatbot** Flutter app. Both use the same API |
 | Order of work | This design first, then build in DynasBrain |
@@ -40,21 +40,21 @@ flowchart LR
         IP["Internet PC<br/>relay + mobile API"] -- cable --> OP["Offline PC<br/>gateway, LabVIEW"]
     end
     subgraph B["Mode B"]
-        OP2["Offline PC<br/>serve + mobile API, gateway, LabVIEW"]
+        SP["Online PC only<br/>AI + DynasBrain + LabVIEW"]
     end
     subgraph C["Mode C"]
-        SP["One PC<br/>AI + DynasBrain + LabVIEW"]
+        OP2["Offline PC<br/>serve + mobile API, gateway, LabVIEW"]
     end
     PH -- "Wi-Fi" --> IP
+    PH -. "Wi-Fi" .-> SP
     PH -. "LAN (needs IT)" .-> OP2
-    PH -. "Wi-Fi / LAN" .-> SP
 ```
 
 | Mode | Phone connects to | Generation happens on | Keeps the offline PC isolated? | Notes |
 |---|---|---|---|---|
 | **A** | Internet PC (its Wi-Fi/LAN IP), port `8767` | Offline PC, through the cable | **Yes** | Recommended. Works with the L1/L2 setup already built |
-| **B** | Offline PC (a second network adapter) | Offline PC | **No**: the offline PC joins the office network | Needs **IT approval**. Still no internet route on that adapter |
-| **C** | The one PC | That PC | Not applicable | For home/test setups and for people with one PC |
+| **B** | Online PC, port `8767` | **Online PC** | Offline PC not used | No cable needed. VIs are created on the online PC, so use it only for **non-confidential / test projects** (an exception to "never on the internet PC", [Architecture](02-architecture.md)) |
+| **C** | Offline PC (a second network adapter) | Offline PC | **No**: the offline PC joins the office network | Needs **IT approval**. Still no internet route on that adapter. AI must be local (Ollama on the offline PC, 3B) or reached through the relay |
 
 The phone API is **the same in all three modes**, so the PWA and the Flutter app do not
 care which mode is used. Only the address changes.
@@ -75,15 +75,15 @@ dynasbrain phone customer-x --view          # View and ask (default)
 dynasbrain phone customer-x --off           # hidden from the phone
 ```
 
-The setting is stored and enforced on the **offline PC** (in mode C, the one PC), like the
-privacy setting. Cloud permission ("Allow sending this project's data to the cloud AI")
+The setting is stored and enforced on the PC that holds the projects (offline PC in modes A
+and C, online PC in mode B), like the privacy setting. Cloud permission ("Allow sending this project's data to the cloud AI")
 can be given from the phone only for projects set to *View, ask and approve*.
 
 ## Security
 
 ### Pairing
 
-1. On the PC that owns the settings (offline PC in modes A/B, the one PC in mode C):
+1. On the PC that owns the settings (offline PC in modes A and C, the online PC in mode B):
    `dynasbrain phone-pair`. It shows a **QR code** and a **6-digit PIN**, valid 5 minutes.
 2. The phone scans it (or types the PIN). It receives a **phone key**: a random secret
    stored only on that phone and on the offline PC.
@@ -124,7 +124,7 @@ phone. Nothing is cached on the phone after logout, and projects set to **Off** 
 
 ## Phone API
 
-Served by the relay (mode A) or by `dynasbrain serve` (modes B and C), under `/m/`.
+Served by the relay (mode A) or by `dynasbrain serve` on the online PC (mode B) or offline PC (mode C), under `/m/`.
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -183,9 +183,9 @@ offline PC screen, and the phone shows "waiting for approval on the offline PC".
 | **P1** | Phone API + PWA, mode A, view and ask | DynasBrain | Phone on Wi-Fi pairs, asks a question, sees progress, cancels. Approvals on the offline PC |
 | **P2** | Phone approvals | DynasBrain | Per-project phone setting; signed approvals from the phone verified on the offline PC; audit log shows `phone:<name>` |
 | **P3** | Files and history screens | DynasBrain | Created files, snapshots and Revert visible from the phone |
-| **P4** | Mode B (offline PC directly) | DynasBrain | Same PWA works against `dynasbrain serve` on the offline PC's LAN adapter. After IT approval |
-| **P5** | Mode C (single PC) | DynasBrain | One PC runs backend + gateway + mobile API; phone works unchanged |
-| **P6** | ai-chatbot Flutter screen | ai-chatbot | "DynasBrain remote" screen using the same API, QR pairing, pinned TLS, a notification for pending approvals while the app is open |
+| **P4** | Mode B (Android → online PC only) | DynasBrain | The online PC runs AI + DynasBrain + mobile API; phone works unchanged; VIs created on the online PC, test projects only |
+| **P5** | Mode C (Android → offline PC directly) | DynasBrain | Same PWA works against `dynasbrain serve` on the offline PC's LAN adapter. After IT approval |
+| **P6** | ai-chatbot Flutter screen (Android) | ai-chatbot | "DynasBrain remote" screen using the same API, QR pairing, pinned TLS, a notification for pending approvals while the app is open |
 
 P1 needs L2 (relay). Generating VIs from the phone needs L4 (labview-mcp + sandbox); until
 then the phone can ask questions and explain VIs.

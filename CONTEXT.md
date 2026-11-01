@@ -37,8 +37,8 @@ postponed.
 8. **Build order:** L1 cable + read-only gateway → L2 relay → L3 local AI backend →
    L4 labview-mcp + sandbox → L5 logic (pylabview + bridge) → L6 training.
 9. **Mobile remote** (docs/11-mobile-remote.md): phone on the office Wi-Fi asks, sends
-   commands, views progress; generation stays on the offline PC. Modes in order: A internet
-   PC → B offline PC direct → C single PC. PWA first, then ai-chatbot Flutter. Phone approval
+   commands, views progress; generation stays on the offline PC. Modes in order: A Android →
+   online PC → offline PC; B Android → online PC only; C Android → offline PC. PWA first, then ai-chatbot Flutter. Phone approval
    is a per-project setting (Off / View and ask / View, ask and approve), HMAC-signed by the
    phone and verified on the offline PC. Build steps P1–P6, after L2.
 
