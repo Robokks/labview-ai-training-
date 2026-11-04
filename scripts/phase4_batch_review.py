@@ -18,6 +18,25 @@ HASH = re.compile(r"^[0-9a-f]{64}$")
 MATH = re.compile(r"(math|arithmetic|calculat|conversion|convert|temperature|fahrenheit|celsius|celcius|farenheit|average|mean|median|absolute|square|round|factorial|sum|add|subtract|multiply|divide|sinus|sine|cosine|sqrt|quadratic|f to c|c to f)", re.I)
 DANGER = re.compile(r"(daq|device|driver|hardware|visa|serial|rs.?232|rs.?422|modbus|tcp|udp|ethernet|network|http|webcam|camera|motor|servo|motion|drive|actuator|relay|contactor|plc|fpga|realtime|real.time|cdaq|crio|instrument|oscilloscope|database|sql|oracle|file.?io|read.?file|write.?file|delete|remove|rename|process|command|system.?exec|shell|python|dll|call.?library|activex|shared.?variable|queue|notifier|event|socket|usb|canopen|power.?supply|sfc|load.?bank|deploy|reboot|shutdown|format.?disk|registry)", re.I)
 
+# Whole-token math matches on the *subject VI basename*, never ancestor folders.
+# Prevent e.g. "sum" inside "Consume Message" from being called mathematics.
+MATH_SUBJECT = re.compile(
+    r"(?<![A-Za-z])(?:math|arithmetic|calculate|calculation|conversion|convert|"
+    r"fahrenheit|farenheit|celsius|celcius|average|mean|median|absolute|"
+    r"square|round|factorial|sum|add|subtract|multiply|divide|sine|cosine|"
+    r"sqrt|quadratic|f[ _-]*to[ _-]*c|c[ _-]*to[ _-]*f)(?![A-Za-z])", re.I
+)
+# Conservative metadata-only refusal for operations with plausible side effects.
+# Use explicit words to avoid excluding every graph through generic field names.
+SIDE_EFFECT = re.compile(
+    r"(?:rabbitmq|mqtt|amqp|logging|logger|log[ _-]*data|record[ _-]*data|"
+    r"save[ _-]*data|write[ _-]*data|append[ _-]*file|"
+    r"\biot\b|\bnetwork\b|\btcp\b|\budp\b|\bdaq\b|\bvisa\b|"
+    r"\bserial\b|\bmodbus\b|\bdevice\b|\bhardware\b|\bdatabase\b|"
+    r"\bcamera\b|\bwebcam\b|\bdriver\b|\bmotor\b|\bplc\b|"
+    r"\bfile[ _-]*io\b|\bactuator\b|\bdll\b)", re.I
+)
+
 def read_records(index: Path):
     seen = set()
     for line_no, line in enumerate(index.read_text(encoding="utf-8-sig").splitlines(), 1):
@@ -62,17 +81,21 @@ def inspect(index: Path, archive: Path, output: Path, limit: int = 3) -> dict:
             # Generic serialized graph metadata contains risk keywords such as
             # "network" and "process". Those are NOT VI operations, and caused
             # all 1,218 records to be excluded. Review semantic node fields only.
-            suspicious = bool(DANGER.search(labels))
+            suspicious = bool(DANGER.search(labels)) or bool(SIDE_EFFECT.search(labels))
             risk_hits = []
+            if SIDE_EFFECT.search(labels):
+                risk_hits.append("path or subject suggests side effects")
             for node in graph.get("nodes", []):
                 if not isinstance(node, dict):
                     continue
                 for field in ("name", "label", "target", "function", "opcode", "kind"):
                     value = node.get(field)
-                    if isinstance(value, str) and DANGER.search(value):
+                    if isinstance(value, str) and (DANGER.search(value) or SIDE_EFFECT.search(value)):
                         risk_hits.append(f"{field}: {value[:100]}")
                         suspicious = True
-            math_hint = bool(MATH.search(labels))
+            subjects = [PurePosixPath(p).name.rsplit(":", 1)[-1] for p in paths]
+            subjects.append(str(graph.get("vi_name", "")).rsplit(":", 1)[-1])
+            math_hint = any(MATH_SUBJECT.search(subject) for subject in subjects)
             assessment = "excluded_keyword_risk" if suspicious else (
                 "manual_review_candidate" if math_hint else "unknown_behavior_not_selected"
             )
