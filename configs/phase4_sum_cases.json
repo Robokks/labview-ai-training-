@@ -1,0 +1,90 @@
+[
+  {
+    "label": "positive",
+    "inputs": {
+      "Numeric": "10",
+      "Numeric 2": "5"
+    },
+    "expect": {
+      "Numeric 3": "15",
+      "Numeric 4": "5"
+    }
+  },
+  {
+    "label": "zero",
+    "inputs": {
+      "Numeric": "0",
+      "Numeric 2": "0"
+    },
+    "expect": {
+      "Numeric 3": "0",
+      "Numeric 4": "0"
+    }
+  },
+  {
+    "label": "negative",
+    "inputs": {
+      "Numeric": "-10",
+      "Numeric 2": "-5"
+    },
+    "expect": {
+      "Numeric 3": "-15",
+      "Numeric 4": "-5"
+    }
+  },
+  {
+    "label": "mixed signs",
+    "inputs": {
+      "Numeric": "10",
+      "Numeric 2": "-5"
+    },
+    "expect": {
+      "Numeric 3": "5",
+      "Numeric 4": "15"
+    }
+  },
+  {
+    "label": "fractional",
+    "inputs": {
+      "Numeric": "2.5",
+      "Numeric 2": "1.5"
+    },
+    "expect": {
+      "Numeric 3": "4",
+      "Numeric 4": "1"
+    }
+  },
+  {
+    "label": "reverse order",
+    "inputs": {
+      "Numeric": "5",
+      "Numeric 2": "10"
+    },
+    "expect": {
+      "Numeric 3": "15",
+      "Numeric 4": "-5"
+    }
+  },
+  {
+    "label": "same values",
+    "inputs": {
+      "Numeric": "7",
+      "Numeric 2": "7"
+    },
+    "expect": {
+      "Numeric 3": "14",
+      "Numeric 4": "0"
+    }
+  },
+  {
+    "label": "large signs",
+    "inputs": {
+      "Numeric": "-100",
+      "Numeric 2": "200"
+    },
+    "expect": {
+      "Numeric 3": "100",
+      "Numeric 4": "-300"
+    }
+  }
+]
