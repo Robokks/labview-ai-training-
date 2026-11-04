@@ -8,6 +8,7 @@ Usage:
 import argparse
 import asyncio
 import json
+import subprocess
 from pathlib import Path
 
 from mcp import ClientSession, StdioServerParameters
@@ -32,10 +33,17 @@ CASES = [
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--generate", action="store_true", help="Create the native Caraya test VI")
+    parser.add_argument("--diagnose", action="store_true", help="Check bundled pylabview provisioning without generating")
+    parser.add_argument("--project", type=Path, help="Existing .lvproj that lists the subject (direct generator route)")
     args = parser.parse_args()
 
     if not MCP_EXE.is_file():
         raise SystemExit(f"MCP executable missing: {MCP_EXE}")
+    if args.diagnose:
+        check = subprocess.run([str(MCP_EXE), "--pylv-status"], check=False)
+        return check.returncode
+    if args.project and not args.project.is_file():
+        raise SystemExit(f"Project missing: {args.project}")
     if not SUBJECT.is_file():
         raise SystemExit(f"Scratch VI missing: {SUBJECT}")
     if args.generate and TEST_FILE.exists():
@@ -66,17 +74,38 @@ async def main():
                 "backend": "grpc",
                 "measureDiagram": True,
             }
+            if args.project:
+                payload["projectPath"] = str(args.project.resolve())
             print("Requesting generation of Caraya test VI (not executing it)...", flush=True)
             result = await client.call_tool("lvai_generate_test", arguments=payload, read_timeout_seconds=600)
+            tool_error = bool(getattr(result, "is_error", False))
+            report = None
             for part in result.content:
-                if getattr(part, "text", None):
-                    print(part.text)
-            print(f"MCP tool error: {bool(result.isError)}")
+                body = getattr(part, "text", None)
+                if not body:
+                    continue
+                print(body)
+                if report is None:
+                    try:
+                        report = json.loads(body)
+                    except (ValueError, TypeError):
+                        pass
+            generator_ok = isinstance(report, dict) and report.get("ok") is True
+            print(f"MCP tool error: {tool_error}")
+            print(f"Generator succeeded: {generator_ok}")
             print(f"Test VI exists: {TEST_FILE.is_file()}")
-            print("Review generator report and inspect generated VI before execution.")
-            if result.isError:
-                raise SystemExit("MCP reported an error; do not run the test VI.")
+            if not generator_ok or tool_error:
+                if isinstance(report, dict):
+                    print(f"Failed at: {report.get('failedAtStep', 'unknown')}")
+                    if report.get("failedAtStep") == "retarget":
+                        print("UNSAFE TO RUN: test VI still calls the placeholder, NOT F-to-C.")
+                        print("Check bundled pylabview: python -m scripts.phase4_generate_caraya --diagnose")
+                        print("Or provide an existing .lvproj listing the scratch VI with --project.")
+                print("NO FUNCTIONAL TESTS WERE EXECUTED. Do not run the generated VI.")
+                return 1
+            print("Test generation reported success; inspect call targets before execution.")
+            return 0
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    raise SystemExit(asyncio.run(main()))
