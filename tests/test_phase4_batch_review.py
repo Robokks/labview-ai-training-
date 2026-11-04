@@ -88,6 +88,28 @@ class BatchReviewTests(unittest.TestCase):
                               [{"name": "TCP Write"}])])
         self.assertEqual([], self.screen()["shortlist"])
 
+    def test_logging_vi_excluded_even_with_temperature_in_name(self):
+        self.set_candidates([(self.sha, "TASK/book1/temperature  data logging.vi",
+                              "temperature  data logging.vi", [])])
+        result = self.screen()
+        self.assertEqual([], result["shortlist"])
+        self.assertEqual(1, result["counts"]["excluded_keyword_risk"])
+
+    def test_rabbitmq_consume_not_math(self):
+        self.set_candidates([(self.sha,
+                              "TASK/actor framework/iot/LabVIEW-RabbitMQ-Client/"
+                              "Consume Message(Config).vi",
+                              "LabVIEW RabbitMQ Client.lvlib:Consume Message(Config).vi", [])])
+        result = self.screen()
+        self.assertEqual([], result["shortlist"])
+        self.assertEqual(1, result["counts"]["excluded_keyword_risk"])
+
+    def test_sum_vi_remains_review_only(self):
+        self.set_candidates([(self.sha, "TASK/book1/sum.vi", "sum.vi", [])])
+        result = self.screen()
+        self.assertEqual(1, len(result["shortlist"]))
+        self.assertFalse(result["shortlist"][0]["execution_authorized"])
+
     def test_staging_requires_explicit_approval(self):
         self.screen()
         with self.assertRaises(FileNotFoundError):
