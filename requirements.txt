@@ -1,0 +1,3 @@
+# LabVIEW AI Training — local development in PyCharm (Python 3.12 recommended)
+# Reads dependency versions from the repository's pyproject.toml.
+-e .[mcp,dev]
