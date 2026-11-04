@@ -18,9 +18,30 @@ class AIXMLTests(unittest.TestCase):
         self.assertEqual(len(graph["nodes"]),5)
         self.assertEqual(graph["nets"]["1.value"][1]["direction"],"input")
         self.assertIn("No execution direction", graph["limitations"][0])
+    def test_for_loop_count_joins_source_net(self):
+        graph = aixml.parse('<VI><Control uid="1" outputs="value:1.value"/>'
+                            '<Structure _name="For Loop" uid="2" maxin="1.value"/></VI>')
+        endpoints = [(p["uid"], p["terminal"], p["direction"]) for p in graph["nets"]["1.value"]]
+        self.assertEqual(endpoints, [("1", "value", "output"), ("2", "maxin", "input")])
+
     def test_canonicalized(self):
         c=aixml.canonicalize(SAMPLE)
         self.assertEqual(aixml.parse(c)["nets"], aixml.parse(SAMPLE)["nets"])
+    def test_backend_pane_metadata_survives_normalization(self):
+        text = SAMPLE + '<?lvmcp pane="4833"?>'
+        for source in (text, aixml.canonicalize(text)):
+            self.assertEqual(aixml.parse(source)["processing_instructions"], ['lvmcp pane="4833"'])
+
+    def test_nested_node_declaring_root_is_flagged(self):
+        text = '<VI><Structure uid="1"><Node uid="2" uid_parent="root"/></Structure></VI>'
+        self.assertTrue(aixml.parse(text)["warnings"])
+
+    def test_call_link_pi_preserves_literal_entities(self):
+        xml = SAMPLE + '<?lvmcp calllink path="&lt;vilib&gt;|numeric"?>'
+        normalized = aixml.canonicalize(xml)
+        self.assertEqual(aixml.parse(xml), aixml.parse(normalized))
+        self.assertEqual(normalized, aixml.canonicalize(normalized))
+
     def test_reject_entity(self):
         with self.assertRaises(ValueError):
             aixml.parse('<!DOCTYPE VI [<!ENTITY ex "x">]><VI/>')
