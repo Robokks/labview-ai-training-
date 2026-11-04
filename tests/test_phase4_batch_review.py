@@ -67,6 +67,22 @@ class BatchReviewTests(unittest.TestCase):
         self.assertEqual([], result["shortlist"])
         self.assertEqual(1, result["counts"]["excluded_keyword_risk"])
 
+    def test_generic_graph_metadata_network_does_not_exclude_every_vi(self):
+        self.set_candidates([(self.sha, self.path, "Temperature Conversion.vi", [])])
+        with zipfile.ZipFile(self.archive, "w") as z:
+            z.writestr(f"{self.sha}/graph.json", json.dumps({
+                "vi_name": "Temperature Conversion.vi",
+                "nodes": [{"name": "Subtract"}, {"name": "Multiply"}],
+                "metadata": {
+                    "network": "wire connectivity information",
+                    "process": "normalized conversion process",
+                    "description": "graph uses nets and network identifiers",
+                },
+            }))
+        result = self.screen()
+        self.assertEqual(1, len(result["shortlist"]))
+        self.assertFalse(result["shortlist"][0]["execution_authorized"])
+
     def test_dangerous_node_never_shortlisted(self):
         self.set_candidates([(self.sha, self.path, "Temperature Conversion.vi",
                               [{"name": "TCP Write"}])])
