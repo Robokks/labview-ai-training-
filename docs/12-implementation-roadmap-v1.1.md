@@ -5,7 +5,7 @@ All source development and non-hardware CI happens in GitHub cloud; Windows LabV
 | Phase | Deliverable | Exit gate |
 |---|---|---|
 | P0 Cloud repository | Source, tests, CI, architecture, runbook | Pure-Python tests green |
-| P1 MCP feasibility | LabVIEW 2025/2026 version/backend matrix | Read VI AIXML, generate only in scratch, compile/readback |
+| P1 MCP feasibility | LabVIEW 2026 backend matrix (NI gRPC and pylabview) | Read VI AIXML, generate only in scratch, compile/readback |
 | P2 Inventory | Hashes, duplicates, families, version/dependency report | Every input file accounted for; no source writes |
 | P3 Representations | Original AIXML + normalized serialization + typed graph | Semantic-equivalence tests for supported subset |
 | P4 Dataset curation | Gold/Silver/Bronze and cloud permissions | Approved SFT examples, project-level held-outs, leakage checks |
