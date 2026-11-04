@@ -1,0 +1,19 @@
+{
+  "schema": "phase4-caraya-generation-batch-v1",
+  "jobs": [
+    {
+      "id": "sum",
+      "source": "D:\\Karthikeyan\\Training Data\\New folder\\New folder (2)\\TASK\\book1\\sum.vi",
+      "scratch": "D:\\Phase4\\NativeVerification\\Sum\\sum.vi",
+      "sha256": "0177eef008ce82038738e361579a2fed11b867b3513a736c7986cf02246095d7",
+      "project": "D:\\Phase4\\NativeVerification\\Sum\\SumVerification.lvproj",
+      "cases": "configs/phase4_sum_cases.json",
+      "test_vi": "D:\\Phase4\\NativeVerification\\Sum\\Tests\\Test sum.vi",
+      "junit": "D:\\Phase4\\NativeVerification\\Sum\\Test sum.xml",
+      "suite_name": "Test sum",
+      "manually_reviewed": false,
+      "risk_accepted_for_generation": false,
+      "allow_vi_execution": false
+    }
+  ]
+}
