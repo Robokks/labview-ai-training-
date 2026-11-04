@@ -1,37 +1,43 @@
-# LabVIEW Local AI: One-Page Plan
+# LabVIEW AI — Final approved plan v1.1 (2026-11-04)
 
-The full design is in **[docs/](docs/README.md)**. This page is the summary.
+**Delivery model:** Develop and store all source and documentation in GitHub; execute cloud GPU training only with approved input and explicit budget authorization. PyCharm is the preferred IDE for optional local review, not a dependency of cloud CI. Local-first inference on Windows, 8 GB RAM/no dedicated GPU, using the existing DynasBrain application (`Robokks/labview-ai-assist`).
 
-Status: **design agreed, nothing built yet** (2026-10-31).
+## Frozen architecture
 
-## Goal
+- Bidirectional **Text -> typed graph -> AIXML -> native VI**, and **VI -> graph/AIXML -> explanation**.
+- Target complete LabVIEW ecosystem (desktop, instrument drivers, DAQmx, LVOOP, RT/FPGA) via staged tested feature coverage.
+- Reuse Zuehlke/labview-mcp for VI operations; use `grpc` or `pylabview` per supported release/backend. Do not duplicate the VI editor.
+- Automatically inventory unknown dataset; original VI, original/normalized AIXML, and typed net graph retained with provenance.
+- Gold (behavioral verified), Silver (structural verified), Bronze (unverified/review only).
+- Automatic candidate labeling with confidence/validation; multi-scale graph learning; family-level train/validation/test.
+- Adaptively combine verified real VIs, public samples, manuals and validated synthetic examples.
+- Benchmark Qwen3-1.7B and Qwen3.5-2B before selecting a foundation; then shared LabVIEW checkpoint and four specialized LoRA adapters: generator, understanding, debugging, architecture.
+- Cloud QLoRA/LoRA with free-first resources; optional INR 500–2000 cap subject to approval. Keep confidential source and local project catalog off cloud without permission.
+- Local quantized inference with live versioned function/terminal catalog, retrieval and controlled MCP workspace.
+- Verified error repair training and optional evaluated preference methods; no unreviewed self-learning.
+- Weight-space experiments only on isolated copies of shared checkpoint, benchmarked against alternatives.
+- Experiment registry, quality gates, staged promotion and rollback. No source VI overwrite or physical hardware action without explicit approval.
 
-A LabVIEW AI assistant that answers questions, explains VI logic and creates small VIs,
-with confidential code kept on our own machines. QA / code review is postponed.
-→ [Overview](docs/01-overview.md)
+## Ordered milestones
 
-## Design
+P0: GitHub scaffold, docs, unit tests, CI.
+P1: Real LabVIEW MCP compatibility and scratch VI round trip.
+P2: Corpus inventory and permissions.
+P3: Typed graph/normalized AIXML with loss detection.
+P4: Verified and consent-filtered SFT pairs, leakage prevention.
+P5: Baseline benchmarks including local CPU constraints.
+P6: Cloud pilot QLoRA and model selection.
+P7: Shared checkpoint and four adapters.
+P8: DynasBrain integration and safe native VI testing.
+P9: Experimental weight-space edits.
+P10: Release with acceptance report and rollback.
 
-| Decision | Detail | Doc |
-|---|---|---|
-| Two repos | This repo = training (separate). DynasBrain (`labview-ai-assist`) = the app; the local AI lives there | [Overview](docs/01-overview.md) |
-| Two PCs, direct cable, Win 10 Pro, single user | **Internet PC = brain** (Claude Code / Codex / Ollama). **Offline PC = hands** (VIs and scripts created and run only there) | [Architecture](docs/02-architecture.md) |
-| Offline PC: Tool Gateway | DynasBrain knowledge tools + curated labview-mcp tools + PowerShell/Python sandbox runner, over the cable | [Architecture](docs/02-architecture.md#components) |
-| Internet PC: Relay | Runs the chosen AI with its own file/shell tools off; the offline gateway is its only toolbox | [Architecture](docs/02-architecture.md#internet-pc-dynasbrain-relay-to-build) |
-| Privacy | Per-project setting, **default "Local AI only"**, enforced on the offline PC. Cloud only with per-request permission. Training uses public data only | [Privacy](docs/03-privacy.md) |
-| Sandbox | Workspace folder, git snapshot before every change, approvals, restricted runner, limited Windows user | [Sandbox](docs/04-sandbox.md) |
-| Network | Fixed IPs `192.168.50.1` / `.2`, no gateway/DNS on the cable, firewall locked to the internet PC, access key, IT approval | [Network setup](docs/05-network-setup.md) |
-| Model | Qwen2.5-Coder 7B Q4_K_M on the laptop via Ollama (3B fallback). CPU, slow is fine | [Local model](docs/06-local-model.md) |
-| Training | Test set first → public data + reviewed own Q&A → QLoRA on Colab → GGUF. Used only if it beats the stock model | [Training](docs/07-training.md) |
-| VI logic | DynasBrain reader + pylabview + bridge Exporter VI, merged | [VI logic](docs/08-vi-understanding.md) |
+## Current repository deliverables
 
-## Build order
+Pure-Python inventory, AIXML graph reader, approved-data SFT builder, read-only MCP status probe, opt-in QLoRA prototype, and unit-test CI. No native LabVIEW functionality or cloud GPU training was executed in GitHub CI; those need an authorized host/environment and input data.
 
-L1 cable + read-only gateway → L2 relay → L3 local AI backend → L4 labview-mcp + sandbox →
-L5 VI logic → L6 training. → [Milestones](docs/09-milestones.md)
+## Source-of-truth documents
 
-## Next step
+[Architecture](docs/11-approved-architecture-v1.1.md) · [Roadmap](docs/12-implementation-roadmap-v1.1.md) · [Data contract](docs/13-data-contract-v1.1.md) · [Cloud runbook](docs/14-cloud-training-runbook-v1.1.md)
 
-**L1:** set up the cable ([Network setup](docs/05-network-setup.md)), run
-`dynasbrain serve --host 192.168.50.2` on the offline PC, and ask Claude Code on the
-internet PC a question about a non-confidential test project.
+Old docs/01–10 are kept unchanged as historical context for an earlier two-PC design, not the current architecture.
