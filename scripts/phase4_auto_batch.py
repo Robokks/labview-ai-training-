@@ -1,4 +1,4 @@
-"""Resumable, guarded batch orchestration for native LabVIEW Caraya test generation.
+"""Guarded batch orchestration for native LabVIEW Caraya test generation.
 
 This module NEVER runs a VI or approves data for training. A user-supplied
 review manifest supplies source hashes, scratch copies, cases and LabVIEW
@@ -77,9 +77,13 @@ def run_batch(manifest: Path, scratch_root: Path, output_dir: Path, *,
     jobs = info.get("jobs")
     if not isinstance(jobs, list) or not 1 <= len(jobs) <= 20:
         raise ValueError("Expected 1-20 batch jobs")
+    if any(not isinstance(x, dict) for x in jobs):
+        raise ValueError("Each job must be an object")
     if len({x.get("id") for x in jobs}) != len(jobs):
         raise ValueError("Duplicate job IDs")
 
+    if output_dir.exists() and (output_dir / ("batch-generation-report.json" if generate else "batch-preflight-report.json")).exists():
+        raise FileExistsError("Report already exists. Use a new output directory for a new run")
     results = []
     # Independent per-job validation lets other candidates be reported without
     # accidentally authorizing any invalid item.
