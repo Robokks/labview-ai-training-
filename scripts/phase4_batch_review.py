@@ -59,7 +59,19 @@ def inspect(index: Path, archive: Path, output: Path, limit: int = 3) -> dict:
             # Block suspicious content in both names and graph text, but do NOT infer
             # that absence of suspicious words makes an unknown VI safe.
             labels = " ".join([*paths, str(graph.get("vi_name", ""))])
-            suspicious = bool(DANGER.search(labels)) or bool(DANGER.search(json.dumps(graph, ensure_ascii=False)))
+            # Generic serialized graph metadata contains risk keywords such as
+            # "network" and "process". Those are NOT VI operations, and caused
+            # all 1,218 records to be excluded. Review semantic node fields only.
+            suspicious = bool(DANGER.search(labels))
+            risk_hits = []
+            for node in graph.get("nodes", []):
+                if not isinstance(node, dict):
+                    continue
+                for field in ("name", "label", "target", "function", "opcode", "kind"):
+                    value = node.get(field)
+                    if isinstance(value, str) and DANGER.search(value):
+                        risk_hits.append(f"{field}: {value[:100]}")
+                        suspicious = True
             math_hint = bool(MATH.search(labels))
             assessment = "excluded_keyword_risk" if suspicious else (
                 "manual_review_candidate" if math_hint else "unknown_behavior_not_selected"
@@ -68,7 +80,8 @@ def inspect(index: Path, archive: Path, output: Path, limit: int = 3) -> dict:
                 "sha256": sha, "project_family": record.get("project_family"),
                 "source_paths": paths, "vi_name": graph.get("vi_name"),
                 "assessment": assessment, "math_name_hint": math_hint,
-                "keyword_risk_found": suspicious, "needs_human_block_diagram_review": True,
+                "keyword_risk_found": suspicious, "risk_examples": risk_hits[:5],
+                "needs_human_block_diagram_review": True,
                 "requires_expected_outputs_and_dependency_review": True,
                 "execution_authorized": False, "training_eligible": False, "cloud_approved": False,
             })
@@ -82,6 +95,7 @@ def inspect(index: Path, archive: Path, output: Path, limit: int = 3) -> dict:
         "training_eligible": False, "cloud_approved": False,
         "limitations": [
             "Keyword screening is neither static program analysis nor a security guarantee.",
+            "No suspicious keywords found does NOT imply that a VI is safe.",
             "Every candidate requires manual LabVIEW block diagram, dependencies and side-effects review.",
             "No native VI has been run, generated or verified by this script.",
         ],
