@@ -1,0 +1,3 @@
+# Optional: cloud QLoRA training environment with a compatible NVIDIA CUDA GPU.
+# Install separately from the basic PyCharm environment.
+-e .[cloud]
