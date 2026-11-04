@@ -1,0 +1,34 @@
+import tempfile
+import unittest
+from pathlib import Path
+from labview_ai_training import aixml
+
+SAMPLE='''<VI _name="Add.vi" description="Add two numbers">
+  <Control _name="a" uid="1" outputs="value:1.value" type="double" value="1"/>
+  <Control _name="b" uid="2" outputs="value:2.value" type="double" value="2"/>
+  <Node _name="Add" uid="3" inputs="x:1.value,y:2.value" outputs="x+y:3.x+y"/>
+  <Indicator _name="sum" uid="4" inputs="value:3.x+y" value="0" type="double"/>
+</VI>'''
+
+class AIXMLTests(unittest.TestCase):
+    def test_parse_and_preserve_nets(self):
+        graph=aixml.parse(SAMPLE)
+        self.assertEqual(graph["vi_name"],"Add.vi")
+        self.assertEqual(len(graph["nets"]),3)
+        self.assertEqual(len(graph["nodes"]),5)
+        self.assertEqual(graph["nets"]["1.value"][1]["direction"],"input")
+        self.assertIn("No execution direction", graph["limitations"][0])
+    def test_canonicalized(self):
+        c=aixml.canonicalize(SAMPLE)
+        self.assertEqual(aixml.parse(c)["nets"], aixml.parse(SAMPLE)["nets"])
+    def test_reject_entity(self):
+        with self.assertRaises(ValueError):
+            aixml.parse('<!DOCTYPE VI [<!ENTITY ex "x">]><VI/>')
+    def test_root_must_be_vi(self):
+        with self.assertRaises(ValueError):
+            aixml.parse("<Project/>")
+    def test_duplicate_uid_warning(self):
+        data='<VI><Node uid="1"/><Node uid="1"/></VI>'
+        self.assertTrue(aixml.parse(data)["warnings"])
+if __name__=="__main__":
+    unittest.main()
