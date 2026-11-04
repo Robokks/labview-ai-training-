@@ -21,7 +21,7 @@
 ## Ordered milestones
 
 P0: GitHub scaffold, docs, unit tests, CI.
-P1: Real LabVIEW MCP compatibility and scratch VI round trip.
+P1: Verify LabVIEW 2026 MCP compatibility and scratch VI round trips with NI gRPC and pylabview.
 P2: Corpus inventory and permissions.
 P3: Typed graph/normalized AIXML with loss detection.
 P4: Verified and consent-filtered SFT pairs, leakage prevention.
