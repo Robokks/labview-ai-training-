@@ -48,6 +48,9 @@ def parse(text: str) -> dict:
         if e.tag == "Structure" and node["name"] == "For Loop" and e.get("maxin"):
             net = e.attrib["maxin"]
             node["inputs"].append({"terminal": "maxin", "net": net, "raw": net})
+        if e.tag == "Structure" and node["name"] == "Case Structure" and e.get("selectin"):
+            net = e.attrib["selectin"]
+            node["inputs"].append({"terminal": "selectin", "net": net, "raw": net})
         nodes.append(node)
         for direction in ("inputs","outputs"):
             for port in node[direction]:
