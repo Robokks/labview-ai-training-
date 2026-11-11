@@ -24,6 +24,13 @@ class AIXMLTests(unittest.TestCase):
         endpoints = [(p["uid"], p["terminal"], p["direction"]) for p in graph["nets"]["1.value"]]
         self.assertEqual(endpoints, [("1", "value", "output"), ("2", "maxin", "input")])
 
+    def test_case_selector_joins_source_net(self):
+        graph = aixml.parse('<VI><Control uid="1" outputs="value:1.value"/>'
+                            '<Structure _name="Case Structure" uid="2" selectin="1.value">'
+                            '<CaseFrame uid="3" selector="True"/></Structure></VI>')
+        endpoints = [(p["uid"], p["terminal"], p["direction"]) for p in graph["nets"]["1.value"]]
+        self.assertEqual(endpoints, [("1", "value", "output"), ("2", "selectin", "input")])
+
     def test_canonicalized(self):
         c=aixml.canonicalize(SAMPLE)
         self.assertEqual(aixml.parse(c)["nets"], aixml.parse(SAMPLE)["nets"])
